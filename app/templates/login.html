@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "bootstrap5/form.html" import render_form %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow p-4 mt-5">
+            <h2 class="card-title text-center mb-4">BagBank Admin Login</h2>
+            {{ render_form(form) }}
+        </div>
+    </div>
+</div>
+{% endblock content %}

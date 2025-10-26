@@ -1,5 +1,29 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
 {% block content %}
-<h1 class="mb-4">Welcome to BagBank Management System</h1>
-<p class="text-muted">System initialized successfully.</p>
-{% endblock %}
+    <h1 class="h2">Dashboard</h1>
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <p>Welcome to the BagBank Management System, {{ current_user.name }}.</p>
+            <p>Your current role is **{{ current_user.get_role_name() }}**.</p>
+            <p>From the sidebar, you can navigate to the various management areas.</p>
+            
+            {% if current_user.is_superadmin() %}
+                <div class="alert alert-info mt-4">
+                    As a **SuperAdmin**, you have access to the **User Management** feature in the left sidebar.
+                </div>
+            {% endif %}
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    Summary Statistics (Future Feature)
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Total Bags in Stock: <span class="badge bg-primary">0</span></li>
+                    <li class="list-group-item">Pending Orders: <span class="badge bg-warning text-dark">0</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

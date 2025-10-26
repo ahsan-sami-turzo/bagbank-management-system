@@ -1,16 +1,92 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>BagBank Management System</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    {% block head %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {{ bootstrap.load_css() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>BBMS | {{ title }}</title>
+    
+    <style>
+        /* Custom styles for sticky elements */
+        body { min-height: 100vh; }
+        .sidebar { top: 56px; /* Height of the Navbar */ }
+        .main-content { margin-left: 16.666667%; /* Offset for sidebar (col-2) */ }
+    </style>
+    {% endblock head %}
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand ms-3" href="/">BagBank</a>
-  </nav>
-  <div class="container mt-4">
-    {% block content %}{% endblock %}
-  </div>
+    
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">🛍️ BagBank MS</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <span class="nav-link">Welcome, <b>{{ current_user.username }}</b> ({{ current_user.get_role_name() }})</span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light ms-2" href="{{ url_for('main.logout') }}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.login') }}">Login</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            {% if current_user.is_authenticated %}
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse position-fixed h-100">
+                <div class="position-sticky pt-3">
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Management</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if title == 'Dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                        </li>
+                        {% if current_user.is_superadmin() %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if title == 'User Management' %}active{% endif %}" href="{{ url_for('main.user_management') }}">
+                                <i class="fas fa-users"></i> **User Management**
+                            </a>
+                        </li>
+                        {% endif %}
+                        </ul>
+                </div>
+            </nav>
+            {% endif %}
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-3 {{ 'main-content' if current_user.is_authenticated else '' }}">
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock content %}
+                
+            </main>
+        </div>
+    </div>
+    
+    {{ bootstrap.load_css() }}
+    {{ bootstrap.load_js() }}
+    {% block scripts %}{% endblock scripts %}
 </body>
 </html>
