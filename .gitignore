@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite
+*.log
+
+# Environments
+venv/
+.env
+
+# Flask / Alembic
+instance/
+migrations/
