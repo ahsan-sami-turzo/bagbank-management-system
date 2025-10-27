@@ -7,21 +7,121 @@
     {{ bootstrap.load_css() }}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>BBMS | {{ title }}</title>
-    
+
     <style>
-        /* Custom styles for sticky elements */
-        body { min-height: 100vh; }
-        .sidebar { top: 56px; /* Height of the Navbar */ }
-        .main-content { margin-left: 16.666667%; /* Offset for sidebar (col-2) */ }
+        /* General Body */
+        body {
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: #343a40;
+        }
+        .navbar .navbar-brand {
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+        .navbar .nav-link, .navbar .btn-outline-light {
+            transition: 0.3s;
+        }
+        .navbar .nav-link:hover, .navbar .btn-outline-light:hover {
+            color: #ffc107 !important;
+            border-color: #ffc107 !important;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            top: 56px; /* Navbar height */
+            height: calc(100vh - 56px);
+            background-color: #ffffff;
+            border-right: 1px solid #dee2e6;
+            padding-top: 1rem;
+        }
+        .sidebar .nav-link {
+            color: #495057;
+            font-weight: 500;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s;
+        }
+        .sidebar .nav-link i {
+            margin-right: 0.5rem;
+        }
+        .sidebar .nav-link.active, .sidebar .nav-link:hover {
+            background-color: #e9ecef;
+            color: #212529;
+            border-radius: 0.25rem;
+        }
+        .collapse-inner .collapse-item {
+            padding-left: 2rem;
+            font-size: 0.95rem;
+        }
+        .sidebar-heading {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            color: #6c757d;
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: 16.666667%;
+        }
+        .main-content h1 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        /* Cards and tables */
+        .card {
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        /* Alerts */
+        .alert {
+            border-radius: 0.5rem;
+        }
+
+        /* Collapsible arrow */
+        .sidebar .nav-link.collapsed::after {
+            content: "\f078";
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            float: right;
+            transition: transform 0.3s;
+        }
+        .sidebar .nav-link.collapsed[aria-expanded="true"]::after {
+            transform: rotate(-180deg);
+        }
+
+        /* Footer spacing */
+        footer {
+            padding: 1rem 0;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
+        }
     </style>
     {% endblock head %}
 </head>
 <body>
-    
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">🛍️ BagBank MS</a>
-            <div class="collapse navbar-collapse">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
@@ -43,65 +143,80 @@
     <div class="container-fluid">
         <div class="row">
             {% if current_user.is_authenticated %}
-            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse position-fixed h-100">
-                <div class="position-sticky pt-3">
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                        <span>Management</span>
-                    </h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {% if title == 'Dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">
-                                <i class="fas fa-home"></i> Dashboard
-                            </a>
-                        </li>
-                        {% if current_user.is_superadmin() %}
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse position-fixed">
+                <div class="position-sticky">
+                    {% if current_user.is_superadmin() %}
+                    <h6 class="sidebar-heading px-3 mt-4 mb-1">User Management</h6>
+                    <ul class="nav flex-column mb-3">
                         <li class="nav-item">
                             <a class="nav-link {% if title == 'User Management' %}active{% endif %}" href="{{ url_for('main.user_management') }}">
-                                <i class="fas fa-users"></i> User Management
+                                <i class="fas fa-users"></i> Users
                             </a>
                         </li>
-                        {% endif %}
+                    </ul>
+                    {% endif %}
+                    
+                    <!-- Product Management Drawer -->                    
+                    <ul class="nav flex-column mb-3">
 
-                        {% if current_user.is_authenticated and current_user.role in [0, 1] %}
                         <li class="nav-item">
-                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseProductAttributes" aria-expanded="false" aria-controls="collapseProductAttributes">
-                                <i class="fas fa-fw fa-box"></i>
-                                <span>Product Attributes</span>
+                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#productDrawer" aria-expanded="false">
+                                <i class="fas fa-box"></i> Product Management
+                                
                             </a>
-                            <div id="collapseProductAttributes" class="collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionSidebar">
-                                <div class="bg-white py-2 collapse-inner rounded">
-                                    <h6 class="collapse-header">Manage:</h6>
-                                    
-                                    <a class="collapse-item" href="{{ url_for('product.list_styles') }}">
-                                        <i class="fas fa-fw fa-gem"></i> Style
-                                    </a>
-
-                                    <a class="collapse-item" href="{{ url_for('product.list_categories') }}">
-                                        <i class="fas fa-fw fa-layer-group"></i> Category
-                                    </a>
-
-                                    <a class="collapse-item" href="{{ url_for('product.list_brands') }}">
-                                        <i class="fas fa-fw fa-certificate"></i> Brand
-                                    </a>
-
-                                    <a class="collapse-item" href="{{ url_for('product.list_materials') }}">
-                                        <i class="fas fa-fw fa-certificate"></i> Material
-                                    </a>
-
-                                    <a class="collapse-item" href="{{ url_for('product.list_colors') }}">
-                                        <i class="fas fa-fw fa-palette"></i> Color
-                                    </a>
-                                </div>
+                            <div id="productDrawer" class="collapse show">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if title == 'Category' %}active{% endif %}" href="{{ url_for('product.list_categories') }}">
+                                            <i class="fas fa-tags"></i> Category
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if title == 'Brand' %}active{% endif %}" href="{{ url_for('product.list_brands') }}">
+                                            <i class="fas fa-copyright"></i> Brand
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if title == 'Style' %}active{% endif %}" href="{{ url_for('product.list_styles') }}">
+                                            <i class="fas fa-paint-brush"></i> Style
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if title == 'Color' %}active{% endif %}" href="{{ url_for('product.list_colors') }}">
+                                            <i class="fas fa-palette"></i> Color
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if title == 'Material' %}active{% endif %}" href="{{ url_for('product.list_materials') }}">
+                                            <i class="fas fa-box-open"></i> Material
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if title == 'Products' %}active{% endif %}" href="{{ url_for('product.list_brands') }}">
+                                            <i class="fas fa-cubes"></i> Products
+                                        </a>
+                                    </li>
+                                </ul>
                             </div>
                         </li>
-                    {% endif %}
-                    </ul>
+                    </ul>                    
+
+                    <!-- Inventory Management Drawer -->     
+                    <h6 class="sidebar-heading px-3 mt-3 mb-1">Inventory Management</h6>
+
+                    <!-- Sales Management Drawer -->     
+                    <h6 class="sidebar-heading px-3 mt-3 mb-1">Sales Management</h6>
+
+                    <!-- Logistics Management Drawer -->     
+                    <h6 class="sidebar-heading px-3 mt-3 mb-1">Logistics Management</h6>
+                    
                 </div>
             </nav>
             {% endif %}
 
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-3 {{ 'main-content' if current_user.is_authenticated else '' }}">
-                
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 {{ 'main-content' if current_user.is_authenticated else '' }}">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
@@ -114,13 +229,30 @@
                 {% endwith %}
 
                 {% block content %}{% endblock content %}
-                
             </main>
         </div>
     </div>
-    
-    {{ bootstrap.load_css() }}
+
     {{ bootstrap.load_js() }}
     {% block scripts %}{% endblock scripts %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const drawer = document.getElementById('productDrawer');
+
+            // Load previous state
+            if (localStorage.getItem('productDrawerOpen') === 'true') {
+                drawer.classList.add('show');
+            }
+
+            // Listen for toggle events
+            drawer.addEventListener('show.bs.collapse', function () {
+                localStorage.setItem('productDrawerOpen', 'true');
+            });
+            drawer.addEventListener('hide.bs.collapse', function () {
+                localStorage.setItem('productDrawerOpen', 'false');
+            });
+        });
+    </script>
 </body>
 </html>
