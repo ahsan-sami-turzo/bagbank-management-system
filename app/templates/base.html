@@ -146,12 +146,13 @@
             <!-- Sidebar -->
             <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse position-fixed">
                 <div class="position-sticky">
-                    {% if current_user.is_superadmin() %}
-                    <h6 class="sidebar-heading px-3 mt-4 mb-1">User Management</h6>
+                    
+                    <!-- User Management -->    
+                    {% if current_user.is_authenticated and current_user.role == 0 %} 
                     <ul class="nav flex-column mb-3">
                         <li class="nav-item">
-                            <a class="nav-link {% if title == 'User Management' %}active{% endif %}" href="{{ url_for('main.user_management') }}">
-                                <i class="fas fa-users"></i> Users
+                            <a class="nav-link" href="{{ url_for('user.list_users') }}">
+                                <i class="fas fa-users-cog"></i> User Management                                
                             </a>
                         </li>
                     </ul>
@@ -162,8 +163,7 @@
 
                         <li class="nav-item">
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#productDrawer" aria-expanded="false">
-                                <i class="fas fa-box"></i> Product Management
-                                
+                                <i class="fas fa-box"></i> Product Management                                
                             </a>
                             <div id="productDrawer" class="collapse show">
                                 <ul class="nav flex-column ms-3">

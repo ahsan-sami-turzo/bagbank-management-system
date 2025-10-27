@@ -11,3 +11,7 @@ venv/
 # Flask / Alembic
 instance/
 migrations/
+
+
+# Custom Python Scripts
+dbtest.py
