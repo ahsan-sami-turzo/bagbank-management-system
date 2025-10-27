@@ -61,7 +61,33 @@
                             </a>
                         </li>
                         {% endif %}
-                        </ul>
+
+                        {% if current_user.is_authenticated and current_user.role in [0, 1] %}
+                        <li class="nav-item">
+                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseProductAttributes" aria-expanded="false" aria-controls="collapseProductAttributes">
+                                <i class="fas fa-fw fa-box"></i>
+                                <span>Product Attributes</span>
+                            </a>
+                            <div id="collapseProductAttributes" class="collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionSidebar">
+                                <div class="bg-white py-2 collapse-inner rounded">
+                                    <h6 class="collapse-header">Manage:</h6>
+                                    
+                                    <a class="collapse-item" href="{{ url_for('product.list_styles') }}">
+                                        <i class="fas fa-fw fa-gem"></i> Styles
+                                    </a>
+
+                                    <a class="collapse-item" href="{{ url_for('product.list_categories') }}">
+                                        <i class="fas fa-fw fa-layer-group"></i> Categories
+                                    </a>
+
+                                    <a class="collapse-item" href="{{ url_for('product.list_brands') }}">
+                                        <i class="fas fa-fw fa-certificate"></i> Brands
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                    {% endif %}
+                    </ul>
                 </div>
             </nav>
             {% endif %}

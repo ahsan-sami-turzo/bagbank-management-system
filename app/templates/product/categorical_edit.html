@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "bootstrap5/form.html" import render_form %}
+
+{% block content %}
+<div class="container mt-4">
+    {% set is_editing = item is not none %}
+    {% set action_text = 'Edit' if is_editing else 'Add New' %}
+
+    <h2><i class="fas fa-edit"></i> {{ action_text }} {{ name[:-1].title() }}</h2>
+    <hr>
+    
+    {% include '_flash_messages.html' %}
+
+    <div class="row">
+        <div class="col-md-6">
+            {{ render_form(form) }}
+        </div>
+    </div>
+    
+    <p class="mt-3">
+        <a href="{{ url_for('product.list_' + name) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to {{ name.title() }} List
+        </a>
+    </p>
+</div>
+{% endblock %}
