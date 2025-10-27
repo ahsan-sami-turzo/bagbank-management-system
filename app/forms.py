@@ -3,7 +3,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
-from app.models import User, USER_ROLES
+from app.models import User, USER_ROLES, SUPPLIER_TYPES
 
 # --- Login Form ---
 class LoginForm(FlaskForm):
@@ -71,6 +71,26 @@ class ColorForm(FlaskForm):
     hex_code = StringField('Hex Code', validators=[
         DataRequired(), 
         Length(min=7, max=7, message='Hex code must be 7 characters (e.g., #1A2B3C)'),
-        # Add a custom validator if you want to ensure the format is correct
     ])
     submit = SubmitField('Save')
+
+# --- Supplier CRUD Form ---
+class SupplierForm(FlaskForm):
+    # Select field for type
+    supplier_type = SelectField('Type', coerce=int, validators=[DataRequired()], 
+                                choices=[(r, name) for r, name in SUPPLIER_TYPES.items()])
+    
+    # Mandatory Fields
+    name = StringField('Name', validators=[DataRequired(), Length(max=150)])
+    phone = StringField('Phone Number', validators=[DataRequired(), Length(max=20)])
+
+    # Optional Fields
+    address = StringField('Address', validators=[Length(max=255)])
+    contact_person = StringField('Contact Person', validators=[Length(max=100)])
+    website = StringField('Website/Link', validators=[Length(max=255)])
+    facebook_page = StringField('Facebook Page', validators=[Length(max=255)])
+    whatsapp_number = StringField('WhatsApp Number', validators=[Length(max=20)])
+    mobile_banking_number = StringField('Mobile Banking Number', validators=[Length(max=50)])
+    bank_account_number = StringField('Bank Account Number', validators=[Length(max=50)])
+    
+    submit = SubmitField('Save Supplier')

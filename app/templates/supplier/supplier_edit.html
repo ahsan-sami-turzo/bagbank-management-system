@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "bootstrap5/form.html" import render_form %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    <h2><i class="fas fa-handshake"></i> {{ action_text }} Supplier</h2>
+    <hr>
+    
+    {% include '_flash_messages.html' %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <form method="POST">
+                {{ form.csrf_token }}
+                
+                {# Use render_form to display all fields defined in SupplierForm #}
+                {{ render_form(form) }}
+            </form>
+        </div>
+    </div>
+    
+    <p class="mt-3">
+        <a href="{{ url_for('supplier.list_suppliers') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Supplier List
+        </a>
+    </p>
+</div>
+{% endblock %}

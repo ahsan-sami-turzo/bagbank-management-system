@@ -147,7 +147,7 @@
             <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse position-fixed">
                 <div class="position-sticky">
                     
-                    <!-- User Management -->    
+                    {# USER MANAGEMENT (SuperAdmin Only) #}   
                     {% if current_user.is_authenticated and current_user.role == 0 %} 
                     <ul class="nav flex-column mb-3">
                         <li class="nav-item">
@@ -157,8 +157,20 @@
                         </li>
                     </ul>
                     {% endif %}
+
+                    {# SUPPLIER MANAGEMENT (Admin/SuperAdmin) #}
+                    {% if current_user.is_authenticated and current_user.role in [0, 1] %}
+                    <ul class="nav flex-column mb-3">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('supplier.list_suppliers') }}">
+                                <i class="fa-solid fa-industry"></i>
+                                <span>Supplier Management</span>
+                            </a>
+                        </li>
+                    </ul>    
+                    {% endif %}
                     
-                    <!-- Product Management Drawer -->                    
+                    {# PRODUCT MANAGEMENT (Admin/SuperAdmin) #}                   
                     <ul class="nav flex-column mb-3">
 
                         <li class="nav-item">

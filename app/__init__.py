@@ -43,6 +43,8 @@ def create_app(config_class=Config):
     from app.product import bp as product_bp
     app.register_blueprint(product_bp, url_prefix='/products')
 
+    from app.supplier import bp as supplier_bp
+    app.register_blueprint(supplier_bp) 
         
     # Flask-Login settings
     login_manager.login_view = 'main.login'
