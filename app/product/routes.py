@@ -1,13 +1,14 @@
 # app/product/routes.py (Final Revision for Modularity and Stability)
 
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required
 from functools import wraps
 from app import db
-from app.models import Style, Category, Brand, Material, Color
-from app.forms import CategoricalForm, BrandForm, ColorForm
+from app.models import Product, Style, Category, Brand, Material, Supplier, Color, ProductImage
+from app.forms import CategoricalForm, BrandForm, ColorForm, ProductForm
 from app.product import bp 
 from app.utils import admin_or_superadmin_required, admin_required
+from app.file_utils import save_and_process_image, slugify
 from sqlalchemy.exc import IntegrityError
 
 # --- Configuration: Define Models and Forms ---
@@ -105,3 +106,122 @@ for model, route_name, form_class in MODELS:
                     methods=['GET', 'POST'],
                     endpoint=f'edit_{route_name}',
                     view_func=edit_func_wrapped)
+    
+
+# --- Helper function to populate FK choices ---
+def populate_product_choices(form):
+    """Dynamically loads choices for SelectFields in ProductForm."""
+    form.style_id.choices = [(s.id, s.name) for s in Style.query.all()]
+    form.category_id.choices = [(c.id, c.name) for c in Category.query.all()]
+    form.brand_id.choices = [(b.id, b.name) for b in Brand.query.all()]
+    form.material_id.choices = [(m.id, m.name) for m in Material.query.all()]
+    form.supplier_id.choices = [(s.id, f"{s.name} ({s.get_type_name()})") for s in Supplier.query.all()]
+    form.colors.choices = [(c.id, c.name) for c in Color.query.order_by(Color.name).all()]
+
+# --- Product Routes ---
+@bp.route('/', methods=['GET'])
+@login_required
+@admin_or_superadmin_required
+def list_products():
+    """Display the list of main products."""
+    products = Product.query.order_by(Product.name).all()
+    return render_template('product/product_list.html', products=products, title='Product Inventory')
+
+
+@bp.route('/edit', defaults={'product_id': None}, methods=['GET', 'POST'])
+@bp.route('/edit/<int:product_id>', methods=['GET', 'POST'])
+@login_required
+@admin_or_superadmin_required
+def edit_product(product_id):
+    """Create or update core product details, including base and additional photos."""
+    
+    product = db.get_or_404(Product, product_id) if product_id else Product()
+    action_text = 'Edit' if product_id else 'Create'
+    form = ProductForm(obj=product)
+    
+    # CRITICAL: Populate dropdown choices before validation
+    populate_product_choices(form)
+
+    if form.validate_on_submit():
+        try:
+            # 1. Save Core Details & Flush
+            # Populate standard fields (name, style, colors, etc.)
+            form.populate_obj(product)
+            db.session.add(product)
+            # Flush session to get product.id for image paths before final commit
+            db.session.flush() 
+            
+            # 2. Prepare for Image Handling
+            product_slug = slugify(product.name)
+            
+            # --- 3. Handle Base Photo (Required for New Product, Optional for Edit) ---
+            base_photo_file = form.base_photo.data
+            
+            # Conditional Validation Check: Base photo required if product is new and no file is submitted
+            if not product_id and not base_photo_file:
+                 flash("A Base Photo is required when creating a new product.", 'error')
+                 # If validation fails here, we must roll back the flushed session state
+                 db.session.rollback() 
+                 return render_template('product/product_edit.html', form=form, product=product, action_text=action_text)
+
+            if base_photo_file:
+                relative_path = save_and_process_image(base_photo_file, product_slug, 'base')
+                
+                if relative_path:
+                    # Find or create the base photo record
+                    base_image = ProductImage.query.filter_by(product_id=product.id, type='base').first()
+                    
+                    if not base_image:
+                        base_image = ProductImage(product_id=product.id, type='base')
+                        db.session.add(base_image)
+                        
+                    base_image.file_path = relative_path
+                    flash("Base photo uploaded and processed.", 'success')
+                else:
+                    flash("Failed to process Base Photo. Check file type and content.", 'error')
+
+
+            # --- 4. Handle Additional Photos ---
+            for file_storage in form.additional_photos.data:
+                # Check if file_storage is an actual file and not an empty field
+                if file_storage and file_storage.filename:
+                    # Process and save the file
+                    relative_path = save_and_process_image(file_storage, product_slug, 'additional')
+                    
+                    if relative_path:
+                        # Create a new record for each additional photo
+                        image = ProductImage(
+                            product_id=product.id, 
+                            type='additional', 
+                            file_path=relative_path
+                        )
+                        db.session.add(image)
+                        
+            
+            # 5. Final Commit
+            db.session.commit()
+            flash(f'Product "{product.name}" and images saved successfully.', 'success')
+            
+            # Redirect to the edit page to manage images/variants further
+            return redirect(url_for('product.edit_product', product_id=product.id))
+            
+        except IntegrityError:
+            db.session.rollback()
+            flash(f"Failed to save product. Name '{form.name.data}' may already be taken.", 'error')
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error during product save: {e}")
+            flash(f'An unexpected error occurred: {e}', 'error')
+
+    # Pass existing images to the template for display
+    base_image = ProductImage.query.filter_by(product_id=product_id, type='base').first() if product_id else None
+    additional_images = ProductImage.query.filter_by(product_id=product_id, type='additional').all() if product_id else []
+    
+    return render_template('product/product_edit.html', 
+                           form=form, 
+                           product=product, 
+                           action_text=action_text,
+                           base_image=base_image,
+                           additional_images=additional_images)
+
+# NOTE: You will also need a delete_product route.

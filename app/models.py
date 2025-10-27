@@ -97,6 +97,12 @@ class Supplier(db.Model):
 
 # --- Product/Variant Structure  ---
 
+# --- Association Table ---
+product_color_association = db.Table('product_color_association',
+    db.Column('product_id', db.Integer, db.ForeignKey('product.id'), primary_key=True),
+    db.Column('color_id', db.Integer, db.ForeignKey('color.id'), primary_key=True)
+)
+
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
@@ -112,7 +118,7 @@ class Product(db.Model):
     brand_id = db.Column(db.Integer, db.ForeignKey('brand.id'))
     material_id = db.Column(db.Integer, db.ForeignKey('material.id'))
 
-    # Foreign Key to Supplier (NEW LINK)
+    # Foreign Key to Supplier
     supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'))
 
     # Relationships (for easy access to attribute names)
@@ -121,24 +127,29 @@ class Product(db.Model):
     brand = db.relationship('Brand')
     material = db.relationship('Material')
     
-    # Variants relationship
-    variants = db.relationship('ProductVariant', backref='product', lazy='dynamic', cascade="all, delete-orphan")
+    # Many-to-Many Relationship with Color (as discussed)
+    colors = db.relationship('Color', secondary=product_color_association,
+                             backref=db.backref('products', lazy='dynamic'))
 
-class ProductVariant(db.Model):
+    # Images relationship (NEW)
+    images = db.relationship('ProductImage', backref='product', lazy='dynamic', cascade="all, delete-orphan")
+
+
+# --- ProductImage Model ---
+class ProductImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    
-    # Link to parent product
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     
-    # Link to color attribute
-    color_id = db.Column(db.Integer, db.ForeignKey('color.id'), nullable=False)
+    # Type: 'base', 'additional', or specific color type like 'color_maroon' (optional future use)
+    type = db.Column(db.String(50), nullable=False) 
     
-    # Inventory/SKU data
-    sku = db.Column(db.String(100), unique=True, nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    stock = db.Column(db.Integer, default=0)
+    # Path relative to the UPLOAD_FOLDER
+    file_path = db.Column(db.String(255), nullable=False)
+    
+    # Optional: Link to a specific color ID if this is a color-specific photo
+    color_id = db.Column(db.Integer, db.ForeignKey('color.id'), nullable=True) 
 
     color = db.relationship('Color')
     
-    # Constraint: A product can only have one variant per color
-    __table_args__ = (db.UniqueConstraint('product_id', 'color_id', name='_product_color_uc'),)
+    def __repr__(self):
+        return f"<Image {self.file_path}>"

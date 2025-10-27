@@ -1,9 +1,11 @@
 # app/forms.py
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
+from flask_wtf.file import FileField, FileAllowed, FileRequired
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField, TextAreaField, URLField, SelectMultipleField, MultipleFileField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
-from app.models import User, USER_ROLES, SUPPLIER_TYPES
+from wtforms.widgets import CheckboxInput, ListWidget
+from app.models import User, USER_ROLES, SUPPLIER_TYPES, Style, Category, Brand, Material, Supplier
 
 # --- Login Form ---
 class LoginForm(FlaskForm):
@@ -94,3 +96,38 @@ class SupplierForm(FlaskForm):
     bank_account_number = StringField('Bank Account Number', validators=[Length(max=50)])
     
     submit = SubmitField('Save Supplier')
+
+# --- Product Form ---
+class ProductForm(FlaskForm):
+    name = StringField('Product Name', validators=[DataRequired(), Length(max=255)])
+    description = TextAreaField('Description')
+    
+    # Text/URL fields
+    facebook_post = URLField('Facebook Post URL', validators=[Length(max=255)])
+    youtube_video = URLField('YouTube Video URL', validators=[Length(max=255)])
+    keywords = StringField('SEO Keywords', validators=[Length(max=255)])
+
+    # Select fields for Foreign Keys (Choices populated in the route)
+    style_id = SelectField('Style', coerce=int, validators=[DataRequired()])
+    category_id = SelectField('Category', coerce=int, validators=[DataRequired()])
+    brand_id = SelectField('Brand', coerce=int, validators=[DataRequired()])
+    material_id = SelectField('Material', coerce=int, validators=[DataRequired()])
+    supplier_id = SelectField('Supplier (Wholesaler/Factory)', coerce=int, validators=[DataRequired()])
+    
+    # Many-to-Many Colors
+    # Note: Use ListWidget/CheckboxInput for better UI for multiple selection
+    colors = SelectMultipleField('Available Colors', coerce=int, 
+                                 validators=[DataRequired()], 
+                                 widget=ListWidget(prefix_label=False), 
+                                 option_widget=CheckboxInput())
+    
+    # --- File Upload Fields (NEW) ---
+    base_photo = FileField('Base Photo (Required)', validators=[
+        FileAllowed(['jpg', 'jpeg', 'png'], 'Allowed file types are PNG, JPG, JPEG.')
+    ])
+    
+    additional_photos = MultipleFileField('Additional Photos (Optional)', validators=[
+        FileAllowed(['jpg', 'jpeg', 'png'], 'Allowed file types are PNG, JPG, JPEG.')
+    ])
+    
+    submit = SubmitField('Save Product Details')

@@ -56,4 +56,10 @@ def create_app(config_class=Config):
     def load_user(user_id):
         return User.query.get(int(user_id))
 
+    from app import models  # Ensure models are loaded
+
+    # Register CLI commands
+    from app.cli import register_cli_commands
+    register_cli_commands(app)
+    
     return app
