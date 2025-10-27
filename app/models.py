@@ -1,3 +1,5 @@
+# app/models.py
+
 from app import db, bcrypt
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -25,16 +27,30 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f"<User {self.username}>"
 
-    # Add this method for template
     def get_role_name(self):
         """Return human-readable role name."""
-        if self.role == "superadmin":
-            return "Super Admin"
-        elif self.role == "admin":
-            return "Admin"
-        else:
-            return "User"
+        return USER_ROLES.get(self.role, "User") # Use the dictionary for reliable mapping
 
-    # Optional helper for template sidebar
     def is_superadmin(self):
-        return self.role == "superadmin"
+        return self.role == 0 # Check against integer 0
+
+    def is_admin_or_superadmin(self):
+        return self.role in [0, 1] # Check against integers 0 or 1
+
+
+class Style(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+
+class Brand(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    is_own_brand = db.Column(db.Boolean, default=False)
+
+# class Material(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String(100), unique=True, nullable=False)

@@ -1,3 +1,5 @@
+# app/forms.py
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
@@ -47,3 +49,15 @@ class UserForm(FlaskForm):
              # Check if this user is the one being edited (if applicable)
             if not hasattr(self, 'original_user') or self.original_user.email != email.data:
                 raise ValidationError('That email is already in use. Please choose a different one.')
+            
+
+# --- Category Form ---
+class CategoricalForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired(), Length(max=100)])
+    submit = SubmitField('Save')
+
+# --- Brand Form ---
+class BrandForm(CategoricalForm):
+    # Brand is slightly different because of the boolean field
+    is_own_brand = BooleanField('Is Own Brand?')
+    # No need to redefine name or submit
