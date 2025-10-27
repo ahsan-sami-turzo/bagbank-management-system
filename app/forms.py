@@ -61,3 +61,16 @@ class BrandForm(CategoricalForm):
     # Brand is slightly different because of the boolean field
     is_own_brand = BooleanField('Is Own Brand?')
     # No need to redefine name or submit
+
+# --- Color Form ---
+class ColorForm(FlaskForm):
+    # Name is still required
+    name = StringField('Color Name', validators=[DataRequired(), Length(max=100)])
+    
+    # Hex code field (e.g., #FF00FF)
+    hex_code = StringField('Hex Code', validators=[
+        DataRequired(), 
+        Length(min=7, max=7, message='Hex code must be 7 characters (e.g., #1A2B3C)'),
+        # Add a custom validator if you want to ensure the format is correct
+    ])
+    submit = SubmitField('Save')

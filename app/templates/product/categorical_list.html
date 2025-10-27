@@ -21,6 +21,8 @@
                 <th>Name</th>
                 {% if name == 'brands' %}
                 <th>Own Brand</th>
+                {% elif name == 'colors' %}  {# ADDED COLOR HEADER #}
+                <th>Swatch</th>
                 {% endif %}
                 <th>Actions</th>
             </tr>
@@ -36,6 +38,20 @@
                         {{ 'Yes' if item.is_own_brand else 'No' }}
                     </span>
                 </td>
+
+                {% elif name == 'colors' %}  {# ADDED COLOR SWATCH #}
+                <td>
+                    <div style="
+                        width: 40px; 
+                        height: 20px; 
+                        background-color: {{ item.hex_code }}; 
+                        border: 1px solid #ccc; 
+                        border-radius: 4px; 
+                        display: inline-block;"
+                        title="{{ item.hex_code }}">
+                    </div>
+                </td>
+                
                 {% endif %}
                 <td>
                     <a href="{{ url_for('product.edit_' + name, item_id=item.id) }}" class="btn btn-sm btn-info me-2">

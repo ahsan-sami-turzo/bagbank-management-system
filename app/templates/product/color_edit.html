@@ -1,0 +1,98 @@
+{# app/templates/product/color_edit.html (REVISED) #}
+
+{% extends "base.html" %}
+{% from "bootstrap5/form.html" import render_form %}
+
+{% block content %}
+<div class="container mt-4">
+    {% set is_editing = item is not none %}
+    {% set action_text = 'Edit' if is_editing else 'Add New' %}
+
+    <h2><i class="fas fa-edit"></i> {{ action_text }} Color</h2>
+    <hr>
+    
+    {% include '_flash_messages.html' %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <form method="POST">
+                {{ form.csrf_token }}
+                
+                {# 1. RENDER NAME FIELD NORMALLY #}
+                <div class="mb-3">
+                    <label class="form-label" for="{{ form.name.id }}">{{ form.name.label }}</label>
+                    {{ form.name(class="form-control") }}
+                    {% if form.name.errors %}
+                        {% for error in form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                {# 2. Hex Code + Color Picker Side by Side #}
+                <div class="mb-3">
+                    <label class="form-label">Color</label>
+                    <div class="d-flex align-items-center gap-2">
+                        {# Text Input for hex code #}
+                        <input 
+                            type="text" 
+                            id="hex_code_input" 
+                            name="{{ form.hex_code.name }}" 
+                            value="{{ form.hex_code.data or '#000000' }}" 
+                            class="form-control" 
+                            placeholder="#FFFFFF"
+                        >
+                        {# Color Picker #}
+                        <input 
+                            type="color" 
+                            id="color_picker" 
+                            class="form-control form-control-color" 
+                            value="{{ form.hex_code.data or '#000000' }}" 
+                            title="Pick a color"
+                        >
+                    </div>
+                    {% if form.hex_code.errors %}
+                        {% for error in form.hex_code.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="form-text">Pick a color or type the hex code manually.</div>
+                </div>
+
+                {# 3. RENDER SUBMIT BUTTON #}
+                <div class="mt-3">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+
+        </div>
+    </div>
+    
+    <p class="mt-3">
+        <a href="{{ url_for('product.list_colors') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Colors List
+        </a>
+    </p>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const hexInput = document.getElementById('hex_code_input');
+    const colorPicker = document.getElementById('color_picker');
+
+    // 1️⃣ Update hex input when color picker changes
+    colorPicker.addEventListener('input', function() {
+        hexInput.value = colorPicker.value.toUpperCase();
+    });
+
+    // 2️⃣ Update color picker when valid hex code is typed manually
+    hexInput.addEventListener('input', function() {
+        // Only update if the hex code is valid
+        if(/^#[0-9A-Fa-f]{6}$/.test(hexInput.value)) {
+            colorPicker.value = hexInput.value;
+        }
+    });
+});
+</script>
+
+{% endblock %}

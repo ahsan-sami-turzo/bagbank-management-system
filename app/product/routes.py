@@ -4,8 +4,8 @@ from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_required
 from functools import wraps
 from app import db
-from app.models import Style, Category, Brand
-from app.forms import CategoricalForm, BrandForm
+from app.models import Style, Category, Brand, Material, Color
+from app.forms import CategoricalForm, BrandForm, ColorForm
 from app.product import bp 
 from app.utils import admin_or_superadmin_required, admin_required
 from sqlalchemy.exc import IntegrityError
@@ -15,6 +15,8 @@ MODELS = [
     (Style, 'styles', CategoricalForm),
     (Category, 'categories', CategoricalForm),
     (Brand, 'brands', BrandForm),
+    (Material, 'materials', CategoricalForm),
+    (Color, 'colors', ColorForm),
 ]
 
 # --- Generic Route Handler Creator ---
@@ -33,7 +35,10 @@ def create_route_handlers(model, route_name, form_class):
     def edit_item_view(item_id=None):
         item = db.get_or_404(model, item_id) if item_id else None
         form = form_class(obj=item)
-        # ... (rest of your form submission logic) ...
+        
+        # Determine which template to use: dedicated for colors, generic for others
+        template_name = 'product/color_edit.html' if route_name == 'colors' else 'product/categorical_edit.html'
+        
         if form.validate_on_submit():            
             try:
                 if item: # Edit existing item
@@ -62,7 +67,7 @@ def create_route_handlers(model, route_name, form_class):
             
             return redirect(url_for(f'product.list_{route_name}'))
         
-        return render_template('product/categorical_edit.html', 
+        return render_template(template_name, 
                                form=form, 
                                item=item, 
                                name=route_name, 

@@ -51,6 +51,11 @@ class Brand(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     is_own_brand = db.Column(db.Boolean, default=False)
 
-# class Material(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(100), unique=True, nullable=False)
+class Material(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+
+class Color(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    hex_code = db.Column(db.String(7), unique=True, nullable=False)
